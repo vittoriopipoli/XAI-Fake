@@ -17,7 +17,7 @@ def create_csv_from_path(real_folder, fake_folder, number_of_samples):
     real_images_path = os.listdir(real_folder)
     random_subsample = random.sample(real_images_path, number_of_samples)
     for real in random_subsample:
-        images_list.append(os.path.join(fake_folder, real))
+        images_list.append(os.path.join(real_folder, real))
         target.append(0)
     i = 0
     for real in random_subsample:
