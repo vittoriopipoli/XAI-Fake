@@ -132,9 +132,9 @@ class ModelManager():
 
             wandb.log({
                 f'Epoch':           epoch,
+                f'LR':              self.optimizer.param_groups[0]['lr'],
                 f'Train/Loss':      tloss,
                 f'Train/Accuracy':  train_accuracy,
-                f'Train/Lr':        self.optimizer.param_groups[0]['lr'],
                 f'Valid/Loss':      vloss,
                 f'Valid/Accuracy':  val_accuracy,                
             })

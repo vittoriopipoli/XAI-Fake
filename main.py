@@ -142,9 +142,9 @@ if __name__ == "__main__":
     val_dataset = Subset(train_dataset, val_indexes)
     train_dataset = Subset(train_dataset, train_indexes)
     # CREATE DATALOADERS
-    train_dataloader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=4, drop_last=True)
-    val_dataloader = DataLoader(val_dataset, batch_size=16, shuffle=False, num_workers=4)
-    test_dataloader = DataLoader(test_dataset, batch_size=16, shuffle=False, num_workers=4)
+    train_dataloader = DataLoader(train_dataset, batch_size=config.data_loader.batch_size, shuffle=True, num_workers=4, drop_last=True)
+    val_dataloader = DataLoader(val_dataset, batch_size=config.data_loader.batch_size, shuffle=False, num_workers=4)
+    test_dataloader = DataLoader(test_dataset, batch_size=config.data_loader.batch_size, shuffle=False, num_workers=4)
 
     if config.trainer.reload and not os.path.exists(config.trainer.checkpoint):
         logging.error(f'Checkpoint file does not exist: {config.trainer.checkpoint}')

@@ -41,5 +41,5 @@ trainer:
   do_train: True
   do_test: False
   do_inference: False
-  epochs: 2
+  epochs: 100
   patience: 20
