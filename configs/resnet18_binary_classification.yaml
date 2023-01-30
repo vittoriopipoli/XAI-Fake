@@ -1,5 +1,5 @@
 title: ResNet18
-project_dir: '/mnt/beegfs/work/H2020DeciderFicarra/vpipoli/xai_fake/results'
+#project_dir: '/mnt/beegfs/work/H2020DeciderFicarra/vpipoli/xai_fake/results' Moved to args
 seed: 42
 
 wandb:
@@ -8,8 +8,8 @@ wandb:
 data_loader:
   PATH_REAL_IMAGES : "/nas/softechict-nas-2/datasets/coco/train2014"
   PATH_FAKE_IMAGES : "/mnt/beegfs/work/prin_creative/fake_coco/train2014"
-  preprocessing: configs/transform_compose.yaml
-  batch_size: 256
+  #preprocessing: configs/transform_compose.yaml
+  batch_size: 4
   num_workers: 8
   preprocessing: configs/preprocessing.yaml
   augmentation: configs/augmentation.yaml  
