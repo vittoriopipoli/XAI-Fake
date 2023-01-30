@@ -39,16 +39,21 @@ class FakeDataset(Dataset):
         return self.annotations_file.shape[0]
 
 
-def dataset_splitter(annotations_file, split_size=0.8, transform=None):
-    ds = FakeDataset(annotations_file, transform)
+def dataset_splitter(annotations_file, split_size=0.8, transform_train=None, transform_test=None):
+    ds = FakeDataset(annotations_file, transform_train)
     train_size = int(split_size * len(ds))
     test_size = len(ds) - train_size
     train_dataset, test_dataset = torch.utils.data.random_split(ds, [train_size, test_size])
-    return train_dataset, test_dataset
+    eval_size = int(0.5 * test_size)
+    test_size = test_size - eval_size
+    test_dataset, eval_dataset = torch.utils.data.random_split(test_dataset, [test_size, eval_size])
+    test_dataset.trasform = transform_test
+    eval_dataset.transform = transform_test
+    return train_dataset, test_dataset, eval_dataset
 
 
 if __name__ == "__main__":
     ANNOTATION_PATH = "../dataset_sampling/dataset_10000.csv"
-    train,eval = dataset_splitter(ANNOTATION_PATH)
+    train, eval = dataset_splitter(ANNOTATION_PATH)
     print(train.len())
     print(eval.len())
