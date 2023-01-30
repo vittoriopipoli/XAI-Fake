@@ -25,7 +25,7 @@ def create_transforms(pre_proccessing, augmentation, config, eval=False):
     if augmentation.RandomGrayscale and not eval:
         transform.append(transforms.RandomGrayscale(p=augmentation.RandomGrayscale.p))
     if augmentation.RandomVerticalFlip and not eval:
-        transform.append(transforms.RandomHorizontalFlip(p=augmentation.RandomVerticalFlip.p))
+        transform.append(transforms.RandomVerticalFlip(p=augmentation.RandomVerticalFlip.p))
     transform.append(transforms.ToTensor())
     transform.append(transforms.Normalize(config.data_loader.mean,config.data_loader.std))
     return transforms.Compose(transform)
