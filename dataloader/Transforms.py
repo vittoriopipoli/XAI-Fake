@@ -11,3 +11,21 @@
 # PREPROCESSING AND THE AUGMENTATIONS FUNCTIONS (IF ANY)
 # WITH THE NORMALIZE FUNCTION AND RETURNS
 # THE TRANSFORM COMPOSE OF THE RESULTING LIST
+from torchvision import transforms
+from torch import nn
+
+def create_transforms(pre_proccessing, augmentation, config, eval=False):
+    transform = []
+    if pre_proccessing.Resize:
+        transform.append(transforms.Resize(pre_proccessing.Resize.size))
+    if pre_proccessing.CenterCrop:
+        transform.append(transforms.CenterCrop(pre_proccessing.CenterCrop.size))
+    if augmentation.RandomHorizontalFlip and not eval:
+        transform.append(transforms.RandomHorizontalFlip(p=augmentation.RandomHorizontalFlip.p))
+    if augmentation.RandomGrayscale and not eval:
+        transform.append(transforms.RandomGrayscale(p=augmentation.RandomGrayscale.p))
+    if augmentation.RandomVerticalFlip and not eval:
+        transform.append(transforms.RandomHorizontalFlip(p=augmentation.RandomVerticalFlip.p))
+    transform.append(transforms.ToTensor())
+    transform.append(transforms.Normalize(config.data_loader.mean,config.data_loader.std))
+    return transforms.Compose(transform)
