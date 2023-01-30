@@ -20,7 +20,10 @@ class ModelManager():
         self.config = config
         self.out_classes = config.model.kwargs.num_classes
         self.device = config.model.device
+
         self.net = self.__build__()
+        if config.trainer.reload:
+            self.__reload_net__(config.trainer.checkpoint)
         self.net.to(self.device)
 
         self.loss_function = nn.CrossEntropyLoss()
@@ -55,14 +58,18 @@ class ModelManager():
         if self.config.scheduler.name == "OneCycleLR":
             self.kwargs = {
                 'max_lr': self.config.optimizer.learning_rate,
-                'steps_per_epoch': 1,  ######### CHECK THIS VALUE
+                'steps_per_epoch': 1,  
                 'epochs': self.config.trainer.epochs,
             }
             return torch.optim.lr_scheduler.OneCycleLR(self.optimizer, **self.kwargs)
         else:
             raise Exception(f"{self.config.scheduler.name} is not supported!")
 
-    def train(self, train_dataloader, eval_dataloader, checkpoint="example/nn_model", DEVICE="cuda", debug=False):
+    def __reload_net__(self, path):
+        logging.info(f'\nRestoring model weigths from: {path}')
+        self.net = torch.load(path)
+
+    def train(self, train_dataloader, eval_dataloader, checkpoint="example/nn_model.pt", DEVICE="cuda", debug=False):
         cudnn.benchmark = False
         running_corrects = 0
         trainLoss = []
@@ -169,7 +176,7 @@ class ModelManager():
             else:
                 patience_counter += 1
 
-    def evaluate(self, test_dataloader, checkpoint, DEVICE="cuda", best=False):
+    def evaluate(self, test_dataloader, checkpoint=None, DEVICE="cuda", best=False):
         cudnn.benchmark=False
         logging.info("test")
         if best:
@@ -198,11 +205,7 @@ class ModelManager():
         accuracy = running_corrects / float(running_elements)
         tloss = np.array(tloss)
         tloss = np.average(tloss, weights=tlossWeights)
-        logging.info(
-            'test_acc: %d' % running_corrects,
-            '/ %d' % running_elements,
-            '= %.3f' % accuracy
-        )
+
         if best:
             wandb.run.summary["Lowest_Validation_Loss/Test_Loss"] = tloss
             wandb.run.summary["Lowest_Validation_Loss/Test_Accuracy"] = accuracy

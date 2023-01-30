@@ -7,6 +7,7 @@ import shutil
 import yaml
 import random
 import time
+from datetime import date
 
 import numpy as np
 import torch
@@ -111,8 +112,10 @@ if __name__ == "__main__":
             augmentation = yaml.load(augmentation_file, yaml.FullLoader)
             augmentation = munchify(augmentation)
     # make title unique to avoid overriding
-    config.title = f'{config.title}_{timehash()}'
+    todays_date = date.today()
+    config.title = f'{config.title}_YY{todays_date.year}-MM{str(todays_date.month).zfill(2)}-DD{str(todays_date.day).zfill(2)}_{timehash()}'
     parent_directory = os.path.join(args.project_dir, config.title)
+    checkpoint_model = os.path.join(parent_directory, 'checkpoint.pt')
     os.makedirs(parent_directory, exist_ok=True)
     logging.info(f'project directory: {parent_directory}')
 
@@ -141,10 +144,9 @@ if __name__ == "__main__":
                                                                  transform_train=transf_train,
                                                                  transform_test=transf_eval)
     # CREATE DATALOADERS
-    train_dataloader = DataLoader(train_dataset, batch_size=config.data_loader.batch_size, shuffle=True, num_workers=4,
-                                  drop_last=True)
-    val_dataloader = DataLoader(eval_dataset, batch_size=config.data_loader.batch_size, shuffle=False, num_workers=4)
-    test_dataloader = DataLoader(test_dataset, batch_size=config.data_loader.batch_size, shuffle=False, num_workers=4)
+    train_dataloader    = DataLoader(train_dataset, batch_size=config.data_loader.batch_size, shuffle=True, num_workers=config.data_loader.num_workers, drop_last=True)
+    val_dataloader      = DataLoader(eval_dataset, batch_size=config.data_loader.batch_size, shuffle=False, num_workers=config.data_loader.num_workers)
+    test_dataloader     = DataLoader(test_dataset, batch_size=config.data_loader.batch_size, shuffle=False, num_workers=config.data_loader.num_workers)
 
     if config.trainer.reload and not os.path.exists(config.trainer.checkpoint):
         logging.error(f'Checkpoint file does not exist: {config.trainer.checkpoint}')
@@ -153,9 +155,15 @@ if __name__ == "__main__":
         # Train the model
     if config.trainer.do_train:
         logging.info('Training...')
-        mm.train(train_dataloader, val_dataloader, debug=args.debug)
+        mm.train(train_dataloader, val_dataloader, debug=args.debug, checkpoint=checkpoint_model)
+        mm.evaluate(test_dataloader, checkpoint=checkpoint_model, best=True)
 
-    # Test the model
+    # Test the model 
     if config.trainer.do_test:
         logging.info('Testing the model...')
-        mm.evaluate(test_dataloader)
+        mm.evaluate(test_dataloader, checkpoint=config.trainer.checkpoint, best=True)
+
+    # Test the model
+    if config.trainer.do_inference:
+        logging.info('Inference...')
+        mm.evaluate(test_dataloader, checkpoint=config.trainer.checkpoint)        
