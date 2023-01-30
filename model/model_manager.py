@@ -63,7 +63,7 @@ class ModelManager():
             raise Exception(f"{self.config.scheduler.name} is not supported!")
 
     def train(self, train_dataloader, eval_dataloader, checkpoint="example/nn_model", DEVICE="cuda", debug=False):
-        cudnn.benchmark
+        cudnn.benchmark = False
         running_corrects = 0
         trainLoss = []
         validationLoss = []
@@ -170,6 +170,7 @@ class ModelManager():
                 patience_counter += 1
 
     def evaluate(self, test_dataloader, checkpoint, DEVICE="cuda", best=False):
+        cudnn.benchmark=False
         logging.info("test")
         if best:
             net = torch.load(checkpoint)
