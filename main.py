@@ -19,6 +19,9 @@ import wandb
 from model.model_manager import ModelManager
 from dataloader.Caltech import Caltech
 from torch.utils.data import Subset, DataLoader
+from dataloader.Transforms import create_transforms
+from data.fake_dataset_dloader import dataset_splitter
+
 
 # used to generate random names that will be appended to the
 # experiment name
@@ -26,8 +29,9 @@ def timehash():
     t = time.time()
     t = str(t).encode()
     h = shake_256(t)
-    h = h.hexdigest(5) # output len: 2*5=10
+    h = h.hexdigest(5)  # output len: 2*5=10
     return h.upper()
+
 
 def setup(seed):
     torch.manual_seed(seed)
@@ -36,6 +40,7 @@ def setup(seed):
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
 
+
 if __name__ == "__main__":
 
     logger = logging.getLogger()
@@ -43,9 +48,13 @@ if __name__ == "__main__":
 
     # Parse arguments
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("-c", "--config", default="config.yaml", help="the config file to be used to run the experiment", required=True)
+    arg_parser.add_argument("-c", "--config", default="config.yaml",
+                            help="the config file to be used to run the experiment", required=True)
     arg_parser.add_argument("--verbose", action='store_true', help="Log also to stdout")
     arg_parser.add_argument("--debug", action='store_true', help="debug, no wandb")
+    arg_parser.add_argument("--project_dir", default="/mnt/beegfs/work/H2020DeciderFicarra/vpipoli/xai_fake/results",
+                            type=str, help="Folder where to store the execution")
+    arg_parser.add_argument("--annotation_file", default="dataset_sampling/dataset_10000.csv")
     args = arg_parser.parse_args()
 
     # check if the config files exists
@@ -67,14 +76,14 @@ if __name__ == "__main__":
 
     # start wandb
     wandb.init(
-        project="XAI-Fake", 
+        project="XAI-Fake",
         entity="xai_fake",
         config=unmunchify(config),
         mode=config.wandb.mode
     )
 
     # Check if project_dir exists
-    if not os.path.exists(config.project_dir):
+    if not os.path.exists(args.project_dir):
         logging.error("Project_dir does not exist: {}".format(config.project_dir))
         raise SystemExit
 
@@ -88,6 +97,7 @@ if __name__ == "__main__":
     else:
         with open(config.data_loader.preprocessing, 'r') as preprocessing_file:
             preprocessing = yaml.load(preprocessing_file, yaml.FullLoader)
+            preprocessing = munchify(preprocessing)
 
     # check if augmentation is set and file exists
     logging.info(f'loading augmentation')
@@ -98,15 +108,16 @@ if __name__ == "__main__":
         augmentation = []
     else:
         with open(config.data_loader.augmentation, 'r') as augmentation_file:
-            augmentation = yaml.load(augmentation_file, yaml.FullLoader)            
-
+            augmentation = yaml.load(augmentation_file, yaml.FullLoader)
+            augmentation = munchify(augmentation)
     # make title unique to avoid overriding
     config.title = f'{config.title}_{timehash()}'
-    os.makedirs(config.title, exist_ok=True)
-    logging.info(f'project directory: {config.title}')
+    parent_directory = os.path.join(args.project_dir, config.title)
+    os.makedirs(parent_directory, exist_ok=True)
+    logging.info(f'project directory: {parent_directory}')
 
     # Setup logger's handlers
-    file_handler = logging.FileHandler(os.path.join(config.title, 'output.log'))
+    file_handler = logging.FileHandler(os.path.join(parent_directory, 'output.log'))
     log_format = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
     file_handler.setFormatter(log_format)
     logger.addHandler(file_handler)
@@ -117,48 +128,34 @@ if __name__ == "__main__":
         logger.addHandler(stdout_handler)
 
     # Copy config file to project_dir, to be able to reproduce the experiment
-    copy_config_path = os.path.join(config.title, 'config.yaml')
+    copy_config_path = os.path.join(parent_directory, 'config.yaml')
     shutil.copy(args.config, copy_config_path)
 
     mm = ModelManager(config)
-
+    transf_train = create_transforms(preprocessing, augmentation, config, eval=False)
+    transf_eval = create_transforms(preprocessing, augmentation, config, eval=True)
     # THE FOLLOWING TRANSFORMATIONS MUST BE CREATED ACCORDINGLY TO THE DATALOADER/TRANSFORMS.PY, PREPROCESSING, AUGMENTATIONS AND CONFIG(DATALOADER.NORMALIZE) YAML FILES
-    train_transform = transforms.Compose([  transforms.Resize(256),      
-                                            transforms.CenterCrop(224),                           
-                                            transforms.ToTensor(), 
-                                            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)) 
-    ])
-    eval_transform = transforms.Compose([   transforms.Resize(256),
-                                            transforms.CenterCrop(224),
-                                            transforms.ToTensor(),
-                                            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))                                    
-    ])
     # THE FOLLOWING IS A TOY DATASET 
     # MOST OF THE FOLLOWING INSTRUCTIONS MUST BE WRAPPED IN A DATALOADER CLASS
-    train_dataset = Caltech(split='train', transform=train_transform)
-    test_dataset = Caltech(split='test', transform=eval_transform)
-    # SPLIT TRAIN IN TRAIN AND VAL
-    train_indexes, val_indexes = train_dataset.retrieveTrainVal()
-    val_dataset = Subset(train_dataset, val_indexes)
-    train_dataset = Subset(train_dataset, train_indexes)
+    train_dataset, test_dataset, eval_dataset = dataset_splitter(args.annotation_file, split_size=0.8,
+                                                                 transform_train=transf_train,
+                                                                 transform_test=transf_eval)
     # CREATE DATALOADERS
-    train_dataloader = DataLoader(train_dataset, batch_size=config.data_loader.batch_size, shuffle=True, num_workers=4, drop_last=True)
-    val_dataloader = DataLoader(val_dataset, batch_size=config.data_loader.batch_size, shuffle=False, num_workers=4)
+    train_dataloader = DataLoader(train_dataset, batch_size=config.data_loader.batch_size, shuffle=True, num_workers=4,
+                                  drop_last=True)
+    val_dataloader = DataLoader(eval_dataset, batch_size=config.data_loader.batch_size, shuffle=False, num_workers=4)
     test_dataloader = DataLoader(test_dataset, batch_size=config.data_loader.batch_size, shuffle=False, num_workers=4)
 
     if config.trainer.reload and not os.path.exists(config.trainer.checkpoint):
         logging.error(f'Checkpoint file does not exist: {config.trainer.checkpoint}')
-        raise SystemExit        
+        raise SystemExit
 
-    # Train the model
+        # Train the model
     if config.trainer.do_train:
         logging.info('Training...')
-        mm.train(train_dataloader, val_dataloader)
+        mm.train(train_dataloader, val_dataloader, debug=args.debug)
 
     # Test the model
     if config.trainer.do_test:
         logging.info('Testing the model...')
         mm.evaluate(test_dataloader)
-
-
-
