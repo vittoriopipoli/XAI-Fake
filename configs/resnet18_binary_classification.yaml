@@ -9,11 +9,13 @@ data_loader:
   PATH_REAL_IMAGES : "/nas/softechict-nas-2/datasets/coco/train2014"
   PATH_FAKE_IMAGES : "/mnt/beegfs/work/prin_creative/fake_coco/train2014"
   batch_size: 256
-  num_workers: 8
+  num_workers: 6
   preprocessing: configs/preprocessing.yaml
   augmentation: configs/augmentation.yaml  
-  mean: [0.485, 0.456, 0.406] # fake
-  std:  [0.229, 0.224, 0.225] # fake
+  #mean: [0.485, 0.456, 0.406] # fake
+  mean: [0.5007, 0.5001, 0.4993] # for equalization
+  std:  [0.2916, 0.2908, 0.2925] # fake
+
 
 
 model:
