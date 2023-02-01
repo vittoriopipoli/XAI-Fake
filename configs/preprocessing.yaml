@@ -4,4 +4,4 @@ CenterCrop:
   size: 224
 Equalize: True
 GaussianBlur:
-  sigma: 0.1
+  sigma: 2

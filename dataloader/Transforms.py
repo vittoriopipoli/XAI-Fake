@@ -16,14 +16,14 @@ from torch import nn
 
 def create_transforms(pre_proccessing, augmentation, config, eval=False):
     transform = []
+    if pre_proccessing.GaussianBlur:
+        transform.append(transforms.GaussianBlur(5, sigma=(pre_proccessing.GaussianBlur.sigma)))
+    if pre_proccessing.Equalize:
+        transform.append(transforms.RandomEqualize(p=1))
     if pre_proccessing.Resize:
         transform.append(transforms.Resize(pre_proccessing.Resize.size, interpolation=transforms.InterpolationMode.BICUBIC))
     if pre_proccessing.CenterCrop:
         transform.append(transforms.CenterCrop(pre_proccessing.CenterCrop.size))
-    if pre_proccessing.GaussianBlur:
-        transform.append(transforms.GaussianBlur(3, sigma=(pre_proccessing.GaussianBlur.sigma)))
-    if pre_proccessing.Equalize:
-        transform.append(transforms.RandomEqualize(p=1))
     if augmentation.RandomHorizontalFlip and not eval:
         transform.append(transforms.RandomHorizontalFlip(p=augmentation.RandomHorizontalFlip.p))
     if augmentation.RandomGrayscale and not eval:
