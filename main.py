@@ -142,7 +142,7 @@ if __name__ == "__main__":
     # MOST OF THE FOLLOWING INSTRUCTIONS MUST BE WRAPPED IN A DATALOADER CLASS
     train_dataset, test_dataset, eval_dataset = dataset_splitter(args.annotation_file, split_size=0.8,
                                                                  transform_train=transf_train,
-                                                                 transform_test=transf_eval)
+                                                                 transform_test=transf_eval, seed=config.seed)
     # CREATE DATALOADERS
     train_dataloader = DataLoader(train_dataset, batch_size=config.data_loader.batch_size, shuffle=True,
                                   num_workers=config.data_loader.num_workers, drop_last=True)
