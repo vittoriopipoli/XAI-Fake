@@ -37,4 +37,4 @@ def create_csv_from_path(real_folder, fake_folder, number_of_samples):
 if __name__ == "__main__":
     PATH_REAL_IMAGES = "/nas/softechict-nas-2/datasets/coco/train2014"
     PATH_FAKE_IMAGES = "/mnt/beegfs/work/prin_creative/fake_coco/train2014"
-    create_csv_from_path(PATH_REAL_IMAGES, PATH_FAKE_IMAGES, 10000)
+    create_csv_from_path(PATH_REAL_IMAGES, PATH_FAKE_IMAGES, 20000)

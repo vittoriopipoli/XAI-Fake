@@ -55,7 +55,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--debug", action='store_true', help="debug, no wandb")
     arg_parser.add_argument("--project_dir", default="/mnt/beegfs/work/H2020DeciderFicarra/vpipoli/xai_fake/results",
                             type=str, help="Folder where to store the execution")
-    arg_parser.add_argument("--annotation_file", default="dataset_sampling/dataset_10000.csv")
+    arg_parser.add_argument("--annotation_file", default="dataset_sampling/dataset_20000.csv")
     args = arg_parser.parse_args()
 
     # check if the config files exists
@@ -144,9 +144,12 @@ if __name__ == "__main__":
                                                                  transform_train=transf_train,
                                                                  transform_test=transf_eval)
     # CREATE DATALOADERS
-    train_dataloader    = DataLoader(train_dataset, batch_size=config.data_loader.batch_size, shuffle=True, num_workers=config.data_loader.num_workers, drop_last=True)
-    val_dataloader      = DataLoader(eval_dataset, batch_size=config.data_loader.batch_size, shuffle=False, num_workers=config.data_loader.num_workers)
-    test_dataloader     = DataLoader(test_dataset, batch_size=config.data_loader.batch_size, shuffle=False, num_workers=config.data_loader.num_workers)
+    train_dataloader = DataLoader(train_dataset, batch_size=config.data_loader.batch_size, shuffle=True,
+                                  num_workers=config.data_loader.num_workers, drop_last=True)
+    val_dataloader = DataLoader(eval_dataset, batch_size=config.data_loader.batch_size, shuffle=False,
+                                num_workers=config.data_loader.num_workers)
+    test_dataloader = DataLoader(test_dataset, batch_size=config.data_loader.batch_size, shuffle=False,
+                                 num_workers=config.data_loader.num_workers)
 
     if config.trainer.reload and not os.path.exists(config.trainer.checkpoint):
         logging.error(f'Checkpoint file does not exist: {config.trainer.checkpoint}')
@@ -166,4 +169,4 @@ if __name__ == "__main__":
     # Test the model
     if config.trainer.do_inference:
         logging.info('Inference...')
-        mm.evaluate(test_dataloader, checkpoint=config.trainer.checkpoint)        
+        mm.evaluate(test_dataloader, checkpoint=config.trainer.checkpoint)
