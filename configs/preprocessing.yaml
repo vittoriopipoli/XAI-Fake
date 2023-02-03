@@ -2,5 +2,6 @@ Resize:
   size: 256
 CenterCrop: 
   size: 224
-
-
+#Equalize: False
+#GaussianBlur:
+#  sigma: 2
