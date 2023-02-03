@@ -8,7 +8,7 @@ wandb:
 data_loader:
   PATH_REAL_IMAGES : "/nas/softechict-nas-2/datasets/coco/train2014"
   PATH_FAKE_IMAGES : "/mnt/beegfs/work/prin_creative/fake_coco/train2014"
-  batch_size: 256
+  batch_size: 128
   num_workers: 8
   preprocessing: configs/preprocessing.yaml
   augmentation: configs/augmentation.yaml  

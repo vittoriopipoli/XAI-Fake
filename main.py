@@ -152,7 +152,7 @@ if __name__ == "__main__":
         logging.error(f'Checkpoint file does not exist: {config.trainer.checkpoint}')
         raise SystemExit
 
-        # Train the model
+    # Train the model
     if config.trainer.do_train:
         logging.info('Training...')
         mm.train(train_dataloader, val_dataloader, debug=args.debug, checkpoint=checkpoint_model)
@@ -163,7 +163,7 @@ if __name__ == "__main__":
         logging.info('Testing the model...')
         mm.evaluate(test_dataloader, checkpoint=config.trainer.checkpoint, best=True)
 
-    # Test the model
+    # Inference
     if config.trainer.do_inference:
         logging.info('Inference...')
         mm.evaluate(test_dataloader, checkpoint=config.trainer.checkpoint)        
