@@ -1,0 +1,44 @@
+title: ResNet18
+#project_dir: '/mnt/beegfs/work/H2020DeciderFicarra/vpipoli/xai_fake/results' Moved to args
+seed: 42
+
+wandb:
+  mode: online
+
+data_loader:
+  PATH_REAL_IMAGES : "/nas/softechict-nas-2/datasets/coco/train2014"
+  PATH_FAKE_IMAGES : "/mnt/beegfs/work/prin_creative/fake_coco/train2014"
+  batch_size: 128
+  num_workers: 8
+  preprocessing: configs/preprocessing.yaml
+  augmentation: configs/augmentation.yaml  
+  mean: [0.485, 0.456, 0.406] # fake
+  std:  [0.229, 0.224, 0.225] # fake
+
+
+model:
+  name: resnet18
+  kwargs:
+    num_classes: 2
+  device: cuda
+
+loss:
+  name: CrossEntropyLoss
+
+scheduler:
+  name: OneCycleLR
+
+optimizer:
+  learning_rate: 0.0001
+  name: Adam
+  weight_decay: 0.00005 # 0
+  momentum: None
+
+trainer:
+  reload: False
+  checkpoint: ''
+  do_train: True
+  do_test: False
+  do_inference: False
+  epochs: 100
+  patience: 20
