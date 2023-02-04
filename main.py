@@ -22,6 +22,7 @@ from dataloader.Caltech import Caltech
 from torch.utils.data import Subset, DataLoader
 from dataloader.Transforms import create_transforms
 from data.fake_dataset_dloader import dataset_splitter
+from xai_gradcam import plot_activation
 
 
 # used to generate random names that will be appended to the
@@ -56,6 +57,8 @@ if __name__ == "__main__":
     arg_parser.add_argument("--project_dir", default="/mnt/beegfs/work/H2020DeciderFicarra/vpipoli/xai_fake/results",
                             type=str, help="Folder where to store the execution")
     arg_parser.add_argument("--annotation_file", default="dataset_sampling/dataset_20000.csv")
+    arg_parser.add_argument("--xai-grad", action='store_true', help="if evaluate checkpoint with grad cam", default=False)
+
     args = arg_parser.parse_args()
 
     # check if the config files exists
@@ -154,19 +157,21 @@ if __name__ == "__main__":
     if config.trainer.reload and not os.path.exists(config.trainer.checkpoint):
         logging.error(f'Checkpoint file does not exist: {config.trainer.checkpoint}')
         raise SystemExit
-
+    if not args.xai_grad:
         # Train the model
-    if config.trainer.do_train:
-        logging.info('Training...')
-        mm.train(train_dataloader, val_dataloader, debug=args.debug, checkpoint=checkpoint_model)
-        mm.evaluate(test_dataloader, checkpoint=checkpoint_model, best=True)
+        if config.trainer.do_train:
+            logging.info('Training...')
+            mm.train(train_dataloader, val_dataloader, debug=args.debug, checkpoint=checkpoint_model)
+            mm.evaluate(test_dataloader, checkpoint=checkpoint_model, best=True)
 
-    # Test the model 
-    if config.trainer.do_test:
-        logging.info('Testing the model...')
-        mm.evaluate(test_dataloader, checkpoint=config.trainer.checkpoint, best=True)
+        # Test the model
+        if config.trainer.do_test:
+            logging.info('Testing the model...')
+            mm.evaluate(test_dataloader, checkpoint=config.trainer.checkpoint, best=True)
 
-    # Test the model
-    if config.trainer.do_inference:
-        logging.info('Inference...')
-        mm.evaluate(test_dataloader, checkpoint=config.trainer.checkpoint)
+        # Test the model
+        if config.trainer.do_inference:
+            logging.info('Inference...')
+            mm.evaluate(test_dataloader, checkpoint=config.trainer.checkpoint)
+    else:
+        plot_activation(mm, test_dataset)
