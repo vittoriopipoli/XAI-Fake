@@ -77,7 +77,6 @@ class ModelManager():
         lowest_val_loss = np.Inf
         STOP = False
 
-
         for epoch in range(self.config.trainer.epochs):
             if STOP:
                 logging.info(f'\nSTOPPED at epoch {epoch}')
@@ -148,7 +147,7 @@ class ModelManager():
             #      )
 
             wandb.log({
-                f'Epoch': epoch,
+                f'Epoch': epoch+1,
                 f'LR': self.optimizer.param_groups[0]['lr'],
                 f'Train/Loss': tloss,
                 f'Train/Accuracy': train_accuracy,

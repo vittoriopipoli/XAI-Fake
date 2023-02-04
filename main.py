@@ -23,6 +23,7 @@ from torch.utils.data import Subset, DataLoader
 from dataloader.Transforms import create_transforms
 from data.fake_dataset_dloader import dataset_splitter
 from xai_gradcam import plot_activation
+from data.fake_dataset_dloader import dataset_splitter, AiorNotDataset
 
 
 # used to generate random names that will be appended to the
@@ -56,9 +57,9 @@ if __name__ == "__main__":
     arg_parser.add_argument("--debug", action='store_true', help="debug, no wandb")
     arg_parser.add_argument("--project_dir", default="/mnt/beegfs/work/H2020DeciderFicarra/vpipoli/xai_fake/results",
                             type=str, help="Folder where to store the execution")
-    arg_parser.add_argument("--annotation_file", default="dataset_sampling/dataset_20000.csv")
     arg_parser.add_argument("--xai-grad", action='store_true', help="if evaluate checkpoint with grad cam", default=False)
-
+    arg_parser.add_argument("--annotation_file", default="dataset_sampling/dataset_10000.csv")
+    arg_parser.add_argument("--aiornot", action='store_true', help="If you want to use dataset of aiornot competition", default=False)
     args = arg_parser.parse_args()
 
     # check if the config files exists
@@ -143,9 +144,13 @@ if __name__ == "__main__":
     # THE FOLLOWING TRANSFORMATIONS MUST BE CREATED ACCORDINGLY TO THE DATALOADER/TRANSFORMS.PY, PREPROCESSING, AUGMENTATIONS AND CONFIG(DATALOADER.NORMALIZE) YAML FILES
     # THE FOLLOWING IS A TOY DATASET 
     # MOST OF THE FOLLOWING INSTRUCTIONS MUST BE WRAPPED IN A DATALOADER CLASS
-    train_dataset, test_dataset, eval_dataset = dataset_splitter(args.annotation_file, split_size=0.8,
-                                                                 transform_train=transf_train,
-                                                                 transform_test=transf_eval, seed=config.seed)
+    if not args.aiornot:
+        train_dataset, test_dataset, eval_dataset = dataset_splitter(args.annotation_file, split_size=0.8,
+                                                                     transform_train=transf_train,
+                                                                     transform_test=transf_eval, seed=config.seed)
+    else:
+        ds = AiorNotDataset(train_transform=transf_train,test_transform=transf_eval, seed=config.seed, split_size=0.8)
+        train_dataset, test_dataset, eval_dataset = ds.aiornot_dataset()
     # CREATE DATALOADERS
     train_dataloader = DataLoader(train_dataset, batch_size=config.data_loader.batch_size, shuffle=True,
                                   num_workers=config.data_loader.num_workers, drop_last=True)
