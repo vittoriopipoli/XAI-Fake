@@ -1,0 +1,10 @@
+/nas/softechict-nas-2/datasets/coco/train2014/COCO_train2014_000000151483.jpg
+/nas/softechict-nas-2/datasets/coco/train2014/COCO_train2014_000000253890.jpg
+/nas/softechict-nas-2/datasets/coco/train2014/COCO_train2014_000000184614.jpg
+/nas/softechict-nas-2/datasets/coco/train2014/COCO_train2014_000000291390.jpg
+/nas/softechict-nas-2/datasets/coco/train2014/COCO_train2014_000000118590.jpg
+/mnt/beegfs/work/prin_creative/fake_coco/train2014/COCO_train2014_000000247699/COCO_train2014_000000247699_116736.jpg
+/mnt/beegfs/work/prin_creative/fake_coco/train2014/COCO_train2014_000000422992/COCO_train2014_000000422992_408865.jpg
+/mnt/beegfs/work/prin_creative/fake_coco/train2014/COCO_train2014_000000406954/COCO_train2014_000000406954_705938.jpg
+/mnt/beegfs/work/prin_creative/fake_coco/train2014/COCO_train2014_000000340993/COCO_train2014_000000340993_616393.jpg
+
