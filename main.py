@@ -57,7 +57,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--debug", action='store_true', help="debug, no wandb")
     arg_parser.add_argument("--project_dir", default="/mnt/beegfs/work/H2020DeciderFicarra/vpipoli/xai_fake/results",
                             type=str, help="Folder where to store the execution")
-    arg_parser.add_argument("--xai-grad", action='store_true', help="if evaluate checkpoint with grad cam", default=False)
+    arg_parser.add_argument("--xai_grad", action='store_true', help="if evaluate checkpoint with grad cam", default=False)
     arg_parser.add_argument("--annotation_file", default="dataset_sampling/dataset_10000.csv")
     arg_parser.add_argument("--aiornot", action='store_true', help="If you want to use dataset of aiornot competition", default=False)
     args = arg_parser.parse_args()
@@ -162,21 +162,21 @@ if __name__ == "__main__":
     if config.trainer.reload and not os.path.exists(config.trainer.checkpoint):
         logging.error(f'Checkpoint file does not exist: {config.trainer.checkpoint}')
         raise SystemExit
-    if not args.xai_grad:
-        # Train the model
-        if config.trainer.do_train:
-            logging.info('Training...')
-            mm.train(train_dataloader, val_dataloader, debug=args.debug, checkpoint=checkpoint_model)
-            mm.evaluate(test_dataloader, checkpoint=checkpoint_model, best=True)
+    # Train the model
+    if config.trainer.do_train:
+        logging.info('Training...')
+        mm.train(train_dataloader, val_dataloader, debug=args.debug, checkpoint=checkpoint_model)
+        mm.evaluate(test_dataloader, checkpoint=checkpoint_model, best=True)
 
-        # Test the model
-        if config.trainer.do_test:
-            logging.info('Testing the model...')
-            mm.evaluate(test_dataloader, checkpoint=config.trainer.checkpoint, best=True)
+    # Test the model
+    if config.trainer.do_test:
+        logging.info('Testing the model...')
+        mm.evaluate(test_dataloader, checkpoint=config.trainer.checkpoint, best=True)
 
-        # Test the model
-        if config.trainer.do_inference:
-            logging.info('Inference...')
-            mm.evaluate(test_dataloader, checkpoint=config.trainer.checkpoint)
-    else:
-        plot_activation(mm, test_dataset)
+    # Test the model
+    if config.trainer.do_inference:
+        logging.info('Inference...')
+        mm.evaluate(test_dataloader, checkpoint=config.trainer.checkpoint)
+
+    if args.xai_grad:
+        plot_activation(mm.net, test_dataset, parent_directory)

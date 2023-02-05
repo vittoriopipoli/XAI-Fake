@@ -41,8 +41,12 @@ class ModelManager():
         if self.config.model.name == "resnet18":
             model = resnet18(weights=ResNet18_Weights)
             fc_in = model.fc.in_features
-            model.fc = torch.nn.Linear(fc_in, self.config.model.kwargs.num_classes)  # check initialization
+            model.fc = torch.nn.Linear(fc_in, self.config.model.kwargs.num_classes)
+            model.fc.requires_grad = True  # check initialization
+            for parameter in model.parameters():
+                parameter.requires_grad = True
             return model
+
         else:
             raise Exception(f"{self.config.model.name} is not supported!")
 
@@ -58,7 +62,7 @@ class ModelManager():
         if self.config.scheduler.name == "OneCycleLR":
             self.kwargs = {
                 'max_lr': self.config.optimizer.learning_rate,
-                'steps_per_epoch': 1,  
+                'steps_per_epoch': 1,
                 'epochs': self.config.trainer.epochs,
             }
             return torch.optim.lr_scheduler.OneCycleLR(self.optimizer, **self.kwargs)
@@ -87,7 +91,7 @@ class ModelManager():
             running_corrects = 0
             running_elements = 0
             batch_numb = 0
-            for images, labels in tqdm(train_dataloader):
+            for images, labels, _ in tqdm(train_dataloader):
                 if debug and batch_numb == DEBUG_BATCHES:
                     break
                 images = images.to(DEVICE)
@@ -120,7 +124,7 @@ class ModelManager():
             running_corrects = 0
             running_elements = 0
             batch_numb = 0
-            for i, (images, labels) in enumerate(eval_dataloader):
+            for i, (images, labels, _) in enumerate(eval_dataloader):
                 if debug and batch_numb == DEBUG_BATCHES:
                     break
                 images = images.to(DEVICE)
@@ -147,7 +151,7 @@ class ModelManager():
             #      )
 
             wandb.log({
-                f'Epoch': epoch+1,
+                f'Epoch': epoch + 1,
                 f'LR': self.optimizer.param_groups[0]['lr'],
                 f'Train/Loss': tloss,
                 f'Train/Accuracy': train_accuracy,
@@ -176,7 +180,7 @@ class ModelManager():
                 patience_counter += 1
 
     def evaluate(self, test_dataloader, checkpoint=None, DEVICE="cuda", best=False):
-        cudnn.benchmark=False
+        cudnn.benchmark = False
         logging.info("test")
         if best:
             net = torch.load(checkpoint)
@@ -190,7 +194,7 @@ class ModelManager():
         running_elements = 0
         tloss = []
         tlossWeights = []
-        for images, labels in test_dataloader:
+        for images, labels, _ in test_dataloader:
             images = images.to(DEVICE)
             labels = labels.to(DEVICE)
             outputs = net(images)

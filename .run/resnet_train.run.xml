@@ -12,8 +12,8 @@
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-    <option name="SCRIPT_NAME" value="/homes/lbaraldi01/XAI-Fake/main.py" />
-    <option name="PARAMETERS" value="--config &quot;configs/resnet18_binary_classification.yaml&quot; --debug --project_dir &quot;/mnt/beegfs/work/tesi_lbaraldi/XAI_fake&quot;" />
+    <option name="SCRIPT_NAME" value="main.py" />
+    <option name="PARAMETERS" value="--config &quot;configs/resnet18_binary_classification.yaml&quot; --debug --project_dir &quot;/mnt/beegfs/work/tesi_lbaraldi/XAI_fake&quot; --xai_grad" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
