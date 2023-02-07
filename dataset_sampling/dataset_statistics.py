@@ -1,8 +1,13 @@
+import numpy
 import pandas as pd
 import torch
 from data.fake_dataset_dloader import FakeDataset
 import torchvision.transforms as transforms
-
+from scipy.fftpack import dct, idct
+from skimage.io import imread
+from skimage.color import rgb2gray
+import numpy as np
+import matplotlib.pylab as plt
 
 def compute_stats(annotation_file):
     transform = transforms.Compose([transforms.RandomEqualize(p=1),transforms.ToTensor()])
@@ -43,6 +48,41 @@ def compute_stats(annotation_file):
     print('mean_fake: ' + str(total_mean_fake))
     print('std_fake:  ' + str(total_std_fake))
 
+# implement 2D DCT
+def dct2(a):
+    return dct(dct(a.T, norm='ortho').T, norm='ortho')
+
+# implement 2D IDCT
+def idct2(a):
+    return idct(idct(a.T, norm='ortho').T, norm='ortho')
+
+
+def compute_spectr(annotation_file):
+    transform = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(224), transforms.ToTensor()])
+    fake_dataset = FakeDataset(annotation_file, transform)
+    imF = numpy.zeros((224,224))
+    for element, target, _ in fake_dataset:
+        r,g,b = element.unbind(0)
+        #r = r.numpy()
+        #g = g.numpy()
+        #b = b.numpy()
+        fft_img = torch.fft.fftshift(r)
+        # imF = imF + dct2(r)
+        # im1 = idct2(imF)
+        #
+        # # check if the reconstructed image is nearly equal to the original image
+        # np.allclose(r, im1)
+        # # True
+        #
+        # # plot original and reconstructed images with matplotlib.pylab
+        # #plt.gray()
+        #
+        # #plt.subplot(121), plt.imshow(im), plt.axis('off')
+        # #plt.subplot(122), plt.imshow(im1), plt.axis('off')
+        #plt.imshow(fft_img.real.numpy()), plt.axis('off')
+        plt.subplot(221), plt.imshow(np.log(1+np.abs(fft_img.numpy()))), plt.axis('off'), plt.show()
+        plt.show()
 
 if __name__ == "__main__":
-    compute_stats("dataset_10000.csv")
+    #compute_stats("dataset_10000.csv")
+    compute_spectr("dataset_20000.csv")
