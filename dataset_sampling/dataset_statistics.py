@@ -8,6 +8,7 @@ from skimage.io import imread
 from skimage.color import rgb2gray
 import numpy as np
 import matplotlib.pylab as plt
+from sklearn.linear_model import Ridge
 
 def compute_stats(annotation_file):
     transform = transforms.Compose([transforms.RandomEqualize(p=1),transforms.ToTensor()])
@@ -58,14 +59,15 @@ def idct2(a):
 
 
 def compute_spectr(annotation_file):
-    transform = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(224), transforms.ToTensor()])
+    #transform = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(224), transforms.ToTensor()])
+    transform = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(224)])
     fake_dataset = FakeDataset(annotation_file, transform)
     fft_img_real = numpy.zeros((224,224))
     fft_img_fake = numpy.zeros((224,224))
     real_count = 0
     fake_count = 0
     for element, target, _ in fake_dataset:
-        r,g,b = element.unbind(0)
+        r,g,b = transforms.functional.pil_to_tensor(element).unbind(0)
         if target == 0:
             fft_img_real = fft_img_real + numpy.abs((torch.fft.fftshift(torch.fft.fft2(r))).numpy())
             fft_img_real = fft_img_real + numpy.abs((torch.fft.fftshift(torch.fft.fft2(g))).numpy())
@@ -95,6 +97,32 @@ def compute_spectr(annotation_file):
         # #plt.subplot(122), plt.imshow(im1), plt.axis('off')
         #plt.imshow(fft_img.real.numpy()), plt.axis('off')
 
+def spectral_computing(annotation_file):
+    transform = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(224)])
+    fake_dataset = FakeDataset(annotation_file, transform)
+    dcc_total = numpy.zeros((0,0,224, 224))
+    for element, target, _ in fake_dataset:
+        r, g, b = transforms.functional.pil_to_tensor(element).unbind(0)
+        r = r.numpy()
+        g = g.numpy()
+        b = b.numpy()
+        dcr = dct2(r)
+        dcg = dct2(g)
+        dcb = dct2(b)
+        #im1 = idct2(imF)
+        dct_result = numpy.concatenate([dcr,dcg,dcb])
+
+        # check if the reconstructed image is nearly equal to the original image
+        #np.allclose(r, im1)
+        # True
+
+        # plot original and reconstructed images with matplotlib.pylab
+        plt.gray()
+        plt.subplot(121), plt.imshow(r), plt.axis('off'), plt.title('original image', size=20)
+        plt.subplot(122), plt.imshow(im1), plt.axis('off'), plt.title('reconstructed image (DCT+IDCT)', size=20)
+        plt.show()
+
 if __name__ == "__main__":
     #compute_stats("dataset_10000.csv")
     compute_spectr("dataset_10000.csv")
+    #spectral_computing("dataset_10000.csv")
