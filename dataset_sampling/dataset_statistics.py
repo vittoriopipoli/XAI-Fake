@@ -60,14 +60,28 @@ def idct2(a):
 def compute_spectr(annotation_file):
     transform = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(224), transforms.ToTensor()])
     fake_dataset = FakeDataset(annotation_file, transform)
-    imF = numpy.zeros((224,224))
+    fft_img_real = numpy.zeros((224,224))
+    fft_img_fake = numpy.zeros((224,224))
+    real_count = 0
+    fake_count = 0
     for element, target, _ in fake_dataset:
         r,g,b = element.unbind(0)
-        #r = r.numpy()
-        #g = g.numpy()
-        #b = b.numpy()
-        fft_img = torch.fft.fftshift(r)
-        # imF = imF + dct2(r)
+        if target == 0:
+            fft_img_real = fft_img_real + numpy.abs((torch.fft.fftshift(torch.fft.fft2(r))).numpy())
+            fft_img_real = fft_img_real + numpy.abs((torch.fft.fftshift(torch.fft.fft2(g))).numpy())
+            fft_img_real = fft_img_real + numpy.abs((torch.fft.fftshift(torch.fft.fft2(b))).numpy())
+            real_count +=1
+        else:
+            fft_img_fake = fft_img_fake + numpy.abs((torch.fft.fftshift(torch.fft.fft2(r))).numpy())
+            fft_img_fake = fft_img_fake + numpy.abs((torch.fft.fftshift(torch.fft.fft2(g))).numpy())
+            fft_img_fake = fft_img_fake + numpy.abs((torch.fft.fftshift(torch.fft.fft2(b))).numpy())
+            fake_count += 1
+    fft_img_real = fft_img_real / (real_count * 3)
+    fft_img_fake = fft_img_fake / (fake_count * 3)
+    plt.imshow(np.log(np.abs(fft_img_real))), plt.axis('off'), plt.title("Real"), plt.savefig('Real'), plt.show(), plt.close()
+    plt.imshow(np.log(np.abs(fft_img_fake))), plt.axis('off'), plt.title("Fake"), plt.savefig('Fake'), plt.show(), plt.close()
+
+#imF = imF + dct2(r)
         # im1 = idct2(imF)
         #
         # # check if the reconstructed image is nearly equal to the original image
@@ -80,9 +94,7 @@ def compute_spectr(annotation_file):
         # #plt.subplot(121), plt.imshow(im), plt.axis('off')
         # #plt.subplot(122), plt.imshow(im1), plt.axis('off')
         #plt.imshow(fft_img.real.numpy()), plt.axis('off')
-        plt.subplot(221), plt.imshow(np.log(1+np.abs(fft_img.numpy()))), plt.axis('off'), plt.show()
-        plt.show()
 
 if __name__ == "__main__":
     #compute_stats("dataset_10000.csv")
-    compute_spectr("dataset_20000.csv")
+    compute_spectr("dataset_10000.csv")

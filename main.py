@@ -179,4 +179,4 @@ if __name__ == "__main__":
         mm.evaluate(test_dataloader, checkpoint=config.trainer.checkpoint)
 
     if args.xai_grad:
-        plot_activation(mm.net, test_dataset, parent_directory)
+        plot_activation(mm.net, test_dataset, parent_directory, config)

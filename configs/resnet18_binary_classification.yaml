@@ -38,7 +38,7 @@ optimizer:
 
 trainer:
   reload: True
-  checkpoint: '/mnt/beegfs/work/tesi_lbaraldi/XAI_fake/ResNet18_YY2023-MM02-DD04_E7BC020F1F/checkpoint.pt'
+  checkpoint: '/mnt/beegfs/work/tesi_lbaraldi/XAI_fake/ResNet18_YY2023-MM02-DD06_9FFBAC21BC/checkpoint.pt'
   do_train: False
   do_test: False
   do_inference: False
