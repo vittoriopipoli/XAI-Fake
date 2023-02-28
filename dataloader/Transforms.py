@@ -20,18 +20,21 @@ def create_transforms(pre_proccessing, augmentation, config, eval=False):
     #     transform.append(transforms.RandomEqualize(p=1))
     # if pre_proccessing.GaussianBlur:
     #     transform.append(transforms.GaussianBlur(5, sigma=(pre_proccessing.GaussianBlur.sigma)))
-    if pre_proccessing.Resize:
+    if "Resize" in pre_proccessing:
         transform.append(transforms.Resize(pre_proccessing.Resize.size, interpolation=transforms.InterpolationMode.BICUBIC))
-    if pre_proccessing.CenterCrop:
+    if "CenterCrop" in pre_proccessing:
         transform.append(transforms.CenterCrop(pre_proccessing.CenterCrop.size))    
-    if pre_proccessing.Grayscale:
+    if "Grayscale" in pre_proccessing:
         transform.append(transforms.Grayscale(num_output_channels=pre_proccessing.Grayscale.num_output_channels))        
-    if augmentation.RandomHorizontalFlip and not eval:
+    if "RandomHorizontalFlip" in pre_proccessing and not eval:
         transform.append(transforms.RandomHorizontalFlip(p=augmentation.RandomHorizontalFlip.p))
-    if augmentation.RandomGrayscale and not eval:
+    if "RandomGrayscale" in pre_proccessing and not eval:
         transform.append(transforms.RandomGrayscale(p=augmentation.RandomGrayscale.p))
-    if augmentation.RandomVerticalFlip and not eval:
+    if "RandomVerticalFlip" in pre_proccessing and not eval:
         transform.append(transforms.RandomVerticalFlip(p=augmentation.RandomVerticalFlip.p))
+
     transform.append(transforms.ToTensor())
-    transform.append(transforms.Normalize(config.data_loader.mean,config.data_loader.std))
+
+    if "Normalize" in pre_proccessing:
+        transform.append(transforms.Normalize(pre_proccessing.Normalization.mean, pre_proccessing.Normalization.std))
     return transforms.Compose(transform)
