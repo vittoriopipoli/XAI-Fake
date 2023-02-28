@@ -20,6 +20,8 @@ data_loader:
 
 model:
   name: resnet18
+  pretrained: False # False # True
+  input_channels: 1 # 1 # 3
   kwargs:
     num_classes: 2
   device: cuda
