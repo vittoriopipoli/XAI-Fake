@@ -44,7 +44,7 @@ class ModelManager():
             else:
                 model = resnet18()
                 if self.config.model.input_channels != 3:
-                    model.conv1 = nn.Conv2d(input_channels, 64, kernel_size=7, 
+                    model.conv1 = nn.Conv2d(self.config.model.input_channels, 64, kernel_size=7, 
                                             stride=2, padding=3, bias=False)
                     model.conv1.requires_grad = True
 
@@ -53,7 +53,7 @@ class ModelManager():
             model.fc.requires_grad = True  # check initialization
             for parameter in model.parameters():
                 parameter.requires_grad = True
-                
+
             return model
 
         else:

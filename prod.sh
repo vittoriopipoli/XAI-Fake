@@ -4,4 +4,6 @@
 #SBATCH --job-name="xai_prod"
 #SBATCH --array=1-2
 
+source venv/bin/activate
+
 python main.py --config configs/resnet18_binary_classification.yaml --verbose
