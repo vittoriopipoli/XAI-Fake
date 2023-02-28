@@ -135,13 +135,15 @@ if __name__ == "__main__":
     # placeholders
     psum    = torch.tensor([0.0])
     psum_sq = torch.tensor([0.0])
+    batch_count = 0
 
     # loop through images
     for inputs, _, _ in tqdm(train_dataloader):
         psum    += inputs.sum(axis        = [0, 2, 3])
         psum_sq += (inputs ** 2).sum(axis = [0, 2, 3])
+        batch_count += 1
     # pixel count
-    count = len(train_dataset) * 224 * 224       
+    count = batch_count*config.data_loader.batch_size * 224 * 224       
     # mean and STD
     total_mean = psum / count
     total_var  = (psum_sq / count) - (total_mean ** 2)
