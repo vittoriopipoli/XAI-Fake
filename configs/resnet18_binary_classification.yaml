@@ -37,9 +37,9 @@ optimizer:
   momentum: None
 
 trainer:
-  reload: True
+  reload: False
   checkpoint: '/mnt/beegfs/work/tesi_lbaraldi/XAI_fake/ResNet18_YY2023-MM02-DD06_9FFBAC21BC/checkpoint.pt'
-  do_train: False
+  do_train: True
   do_test: False
   do_inference: False
   epochs: 100

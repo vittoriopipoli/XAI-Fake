@@ -2,6 +2,8 @@ Resize:
   size: 256
 CenterCrop: 
   size: 224
+Grayscale:
+  num_output_channels: 1
 #Equalize: False
 #GaussianBlur:
 #  sigma: 2
