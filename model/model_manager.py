@@ -46,7 +46,12 @@ class ModelManager():
             for parameter in model.parameters():
                 parameter.requires_grad = True
             return model
-
+        elif self.config.model.name == "resnetspectral":
+            model = resnet18()
+            model.conv1 = torch.nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+            for parameter in model.parameters():
+                parameter.requires_grad = True
+            return model
         else:
             raise Exception(f"{self.config.model.name} is not supported!")
 
