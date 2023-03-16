@@ -39,12 +39,21 @@ class ModelManager():
 
     def __build__(self):
         if self.config.model.name == "resnet18":
-            model = resnet18(weights=ResNet18_Weights)
+            if self.config.model.pretrained:
+                model = resnet18(weights=ResNet18_Weights)
+            else:
+                model = resnet18()
+                if self.config.model.input_channels != 3:
+                    model.conv1 = nn.Conv2d(self.config.model.input_channels, 64, kernel_size=7, 
+                                            stride=2, padding=3, bias=False)
+                    model.conv1.requires_grad = True
+
             fc_in = model.fc.in_features
             model.fc = torch.nn.Linear(fc_in, self.config.model.kwargs.num_classes)
             model.fc.requires_grad = True  # check initialization
             for parameter in model.parameters():
                 parameter.requires_grad = True
+
             return model
         elif self.config.model.name == "resnetspectral":
             model = resnet18()
