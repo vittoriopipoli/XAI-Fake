@@ -24,6 +24,7 @@ from dataloader.Transforms import create_transforms
 from data.fake_dataset_dloader import dataset_splitter
 from xai_gradcam import plot_activation
 from data.fake_dataset_dloader import dataset_splitter, AiorNotDataset
+from dataset_sampling.dataset_statistics import compute_spectr_BW
 
 
 # used to generate random names that will be appended to the
@@ -58,7 +59,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--project_dir", default="/mnt/beegfs/work/H2020DeciderFicarra/vpipoli/xai_fake/results",
                             type=str, help="Folder where to store the execution")
     arg_parser.add_argument("--xai_grad", action='store_true', help="if evaluate checkpoint with grad cam", default=False)
-    arg_parser.add_argument("--annotation_file", default="dataset_sampling/dataset_10000.csv")
+    arg_parser.add_argument("--annotation_file", default="/mnt/beegfs/work/H2020DeciderFicarra/vpipoli/xai_fake/XAI-Fake/dataset_sampling/dataset_10000.csv")
     arg_parser.add_argument("--aiornot", action='store_true', help="If you want to use dataset of aiornot competition", default=False)
     args = arg_parser.parse_args()
 
@@ -139,24 +140,45 @@ if __name__ == "__main__":
     shutil.copy(args.config, copy_config_path)
 
     mm = ModelManager(config)
-    transf_train = create_transforms(preprocessing, augmentation, config, eval=False)
-    transf_eval = create_transforms(preprocessing, augmentation, config, eval=True)
+    transf_train = create_transforms(preprocessing, augmentation, config, eval=False, compose=True)
+    transf_eval = create_transforms(preprocessing, augmentation, config, eval=True, compose=True)
     # THE FOLLOWING TRANSFORMATIONS MUST BE CREATED ACCORDINGLY TO THE DATALOADER/TRANSFORMS.PY, PREPROCESSING, AUGMENTATIONS AND CONFIG(DATALOADER.NORMALIZE) YAML FILES
     # THE FOLLOWING IS A TOY DATASET 
     # MOST OF THE FOLLOWING INSTRUCTIONS MUST BE WRAPPED IN A DATALOADER CLASS
+    load_spectrum = True
+    if load_spectrum == True:
+        fft_img_real_mean = np.load('/mnt/beegfs/work/H2020DeciderFicarra/vpipoli/xai_fake/XAI-Fake/fft_img_real_mean.npy')
+        fft_img_fake_mean = np.load('/mnt/beegfs/work/H2020DeciderFicarra/vpipoli/xai_fake/XAI-Fake/fft_img_fake_mean.npy')
+        
+    else:
+        logging.info("COMPUTING SPECTR AND MEANS...")
+        fft_img_real_mean, fft_img_fake_mean = compute_spectr_BW(args.annotation_file)
+        np.save("/mnt/beegfs/work/H2020DeciderFicarra/vpipoli/xai_fake/XAI-Fake/fft_img_real_mean.npy", fft_img_real_mean, allow_pickle=True, fix_imports=True)
+        np.save("/mnt/beegfs/work/H2020DeciderFicarra/vpipoli/xai_fake/XAI-Fake/fft_img_fake_mean.npy", fft_img_fake_mean, allow_pickle=True, fix_imports=True)
+        logging.info("SPECTR COMPUTED!")
+
+    # spectrum_shift_eval={"fft_img_real_mean":fft_img_real_mean, "fft_img_fake_mean":fft_img_fake_mean}
+    spectrum_shift_eval=False
     if not args.aiornot:
         train_dataset, test_dataset, eval_dataset = dataset_splitter(args.annotation_file, split_size=0.8,
                                                                      transform_train=transf_train,
-                                                                     transform_test=transf_eval, seed=config.seed)
+                                                                     transform_test=transf_eval, 
+                                                                     spectrum_shift_eval=spectrum_shift_eval,
+                                                                     seed=config.seed)
     else:
         ds = AiorNotDataset(train_transform=transf_train,test_transform=transf_eval, seed=config.seed, split_size=0.8)
         train_dataset, test_dataset, eval_dataset = ds.aiornot_dataset()
     # CREATE DATALOADERS
-    train_dataloader = DataLoader(train_dataset, batch_size=config.data_loader.batch_size, shuffle=True,
+    train_dataloader = DataLoader(train_dataset, 
+                                  batch_size=config.data_loader.batch_size, 
+                                  shuffle=True,
                                   num_workers=config.data_loader.num_workers, drop_last=True)
-    val_dataloader = DataLoader(eval_dataset, batch_size=config.data_loader.batch_size, shuffle=False,
-                                num_workers=config.data_loader.num_workers)
-    test_dataloader = DataLoader(test_dataset, batch_size=config.data_loader.batch_size, shuffle=False,
+    val_dataloader = DataLoader(eval_dataset, 
+                                batch_size=config.data_loader.batch_size, 
+                                shuffle=False, num_workers=config.data_loader.num_workers)
+    test_dataloader = DataLoader(test_dataset, 
+                                 batch_size=config.data_loader.batch_size, 
+                                 shuffle=False,
                                  num_workers=config.data_loader.num_workers)
 
     if config.trainer.reload and not os.path.exists(config.trainer.checkpoint):

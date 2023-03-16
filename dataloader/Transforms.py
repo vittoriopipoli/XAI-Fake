@@ -14,7 +14,7 @@
 from torchvision import transforms
 from torch import nn
 
-def create_transforms(pre_proccessing, augmentation, config, eval=False):
+def create_transforms(pre_proccessing, augmentation, config, eval=False, compose=True):
     transform = []
     # if pre_proccessing.Equalize:
     #     transform.append(transforms.RandomEqualize(p=1))
@@ -37,4 +37,7 @@ def create_transforms(pre_proccessing, augmentation, config, eval=False):
 
     if "Normalize" in pre_proccessing:
         transform.append(transforms.Normalize(pre_proccessing.Normalization.mean, pre_proccessing.Normalization.std))
-    return transforms.Compose(transform)
+    if compose == True:
+        return transforms.Compose(transform)
+    else:
+        return transform

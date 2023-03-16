@@ -1,7 +1,7 @@
 RandomHorizontalFlip:
   p: 0.5
-RandomGrayscale:
-  p: 0.1
+# RandomGrayscale:
+#   p: 0.1
 RandomVerticalFlip:
   p: 0.1    
 

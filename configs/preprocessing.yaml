@@ -4,9 +4,9 @@ CenterCrop:
   size: 224
 Grayscale:
   num_output_channels: 1
-# Normalization:
-#   mean: [0.5007, 0.5001, 0.4993] # [0.5007, 0.5001, 0.4993]  fake rgb ### [0.4597] fake bw
-#   std:  [0.2916, 0.2908, 0.2925] # [0.2916, 0.2908, 0.2925]  fake rgb ### [0.2621] fake bw
+Normalization:
+  mean: [0.4597] # [0.5007, 0.5001, 0.4993]  fake rgb ### [0.4597] fake bw
+  std:  [0.2621] # [0.2916, 0.2908, 0.2925]  fake rgb ### [0.2621] fake bw
 #Equalize: False
 #GaussianBlur:
 #  sigma: 2

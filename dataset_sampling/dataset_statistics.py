@@ -1,3 +1,6 @@
+import sys
+sys.path.append("/mnt/beegfs/work/H2020DeciderFicarra/vpipoli/xai_fake/XAI-Fake/")
+
 import numpy
 import pandas as pd
 import torch
@@ -9,6 +12,8 @@ from skimage.color import rgb2gray
 import numpy as np
 import matplotlib.pylab as plt
 from sklearn.linear_model import Ridge
+from tqdm import tqdm
+from torch.utils.data import DataLoader
 
 def compute_stats(annotation_file):
     transform = transforms.Compose([transforms.RandomEqualize(p=1),transforms.ToTensor()])
@@ -78,10 +83,35 @@ def compute_spectr(annotation_file):
             fft_img_fake = fft_img_fake + numpy.abs((torch.fft.fftshift(torch.fft.fft2(g))).numpy())
             fft_img_fake = fft_img_fake + numpy.abs((torch.fft.fftshift(torch.fft.fft2(b))).numpy())
             fake_count += 1
+        # break #################     REMOVE, IT'S FOR DEBUG PURPOSES!!!!
     fft_img_real = fft_img_real / (real_count * 3)
     fft_img_fake = fft_img_fake / (fake_count * 3)
     plt.imshow(np.log(np.abs(fft_img_real))), plt.axis('off'), plt.title("Real"), plt.savefig('Real'), plt.show(), plt.close()
     plt.imshow(np.log(np.abs(fft_img_fake))), plt.axis('off'), plt.title("Fake"), plt.savefig('Fake'), plt.show(), plt.close()
+    return torch.tensor(fft_img_real), torch.tensor(fft_img_fake)
+
+def compute_spectr_BW(annotation_file):
+    #transform = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(224), transforms.ToTensor()])
+    transform = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(224), 
+                                    transforms.Grayscale(num_output_channels=1), transforms.ToTensor(), transforms.Normalize(0.4597, 0.2621)])
+    fake_dataset = FakeDataset(annotation_file, transform)
+    fake_dataset = DataLoader(fake_dataset, shuffle=True)
+    fft_img_real = numpy.zeros((224,224))
+    fft_img_fake = numpy.zeros((224,224))
+    real_count = 0
+    fake_count = 0
+    for i, (element, target, _) in enumerate(fake_dataset):
+        if target == 0:
+            fft_img_real = fft_img_real + numpy.abs((torch.fft.fftshift(torch.fft.fft2(element))).numpy())
+            real_count +=1
+        else:
+            fft_img_fake = fft_img_fake + numpy.abs((torch.fft.fftshift(torch.fft.fft2(element))).numpy())
+            fake_count += 1
+        if i == 1000:
+            break #################     REMOVE, IT'S FOR DEBUG PURPOSES!!!!
+    fft_img_real = fft_img_real / (real_count)
+    fft_img_fake = fft_img_fake / (fake_count)
+    return torch.tensor(fft_img_real), torch.tensor(fft_img_fake)
 
 #imF = imF + dct2(r)
         # im1 = idct2(imF)
@@ -124,5 +154,6 @@ def spectral_computing(annotation_file):
 
 if __name__ == "__main__":
     #compute_stats("dataset_10000.csv")
-    compute_spectr("dataset_10000.csv")
+    fft_img_real_mean, fft_img_fake_mean = compute_spectr_BW("/mnt/beegfs/work/H2020DeciderFicarra/vpipoli/xai_fake/XAI-Fake/dataset_sampling/dataset_10000.csv")
+    print("ok")
     #spectral_computing("dataset_10000.csv")

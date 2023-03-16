@@ -6,6 +6,9 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.datasets.folder import default_loader
 import logging
+from dataloader.custom_transforms import SpectrumShift
+from torchvision import transforms
+import copy
 
 try:
     from torchvision.transforms import InterpolationMode
@@ -21,20 +24,31 @@ class FakeDataset(Dataset):
     def __init__(
             self,
             annotations_file,
-            transform=None
+            transform=None,
+            spectrum_shift_eval=False,
     ):
         super().__init__()
         self.annotations_file = pd.read_csv(annotations_file)
         self.transform = transform
+        self.spectrum_shift_eval=spectrum_shift_eval
         logging.info(f"Created Fake dataset with {len(self)} images")
 
     def __getitem__(self, idx):
+        current_transf = copy.deepcopy(self.transform)
         img_path = self.annotations_file.iloc[idx, 0]
         target = self.annotations_file.iloc[idx, 1]
 
         image = default_loader(img_path)
         if self.transform is not None:
-            image = self.transform(image)
+            if self.spectrum_shift_eval != False:
+                if target == 0:   
+                    fake_to_real = False
+                else:
+                    fake_to_real = True
+                ss = SpectrumShift(self.spectrum_shift_eval["fft_img_real_mean"], self.spectrum_shift_eval["fft_img_fake_mean"], fake_to_real)
+                current_transf.append(ss)
+                current_transf = transforms.Compose(current_transf)
+            image = current_transf(image)
         return image, target, img_path
 
     def __len__(self):
@@ -55,10 +69,10 @@ class FakeDataset(Dataset):
 #     eval_dataset.set_transform(transform_test)
 #     return train_dataset, test_dataset, eval_dataset
 
-def dataset_splitter(annotations_file, split_size=0.8, transform_train=None, transform_test=None, seed=42):
-    train_dataset = FakeDataset(annotations_file, transform_train)
-    eval_dataset = FakeDataset(annotations_file, transform_test)
-    test_dataset = FakeDataset(annotations_file, transform_test)
+def dataset_splitter(annotations_file, split_size=0.8, transform_train=None, transform_test=None, spectrum_shift_eval=False, seed=42):
+    train_dataset = FakeDataset(annotations_file, transform_train, spectrum_shift_eval)
+    eval_dataset = FakeDataset(annotations_file, transform_test, spectrum_shift_eval)
+    test_dataset = FakeDataset(annotations_file, transform_test, spectrum_shift_eval)
 
     indices = torch.randperm(len(train_dataset)).tolist()
     val_size = len(train_dataset) // 10

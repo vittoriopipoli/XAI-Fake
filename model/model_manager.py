@@ -204,6 +204,7 @@ class ModelManager():
         tloss = []
         tlossWeights = []
         for images, labels, _ in test_dataloader:
+            # images = torch.squeeze(images, 0)
             images = images.to(DEVICE)
             labels = labels.to(DEVICE)
             outputs = net(images)
